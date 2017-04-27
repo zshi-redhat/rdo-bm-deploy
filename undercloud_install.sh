@@ -12,13 +12,13 @@ export http_proxy=$http_proxy
 export https_proxy=$https_proxy
 
 # yum install is not available at this stage,
-# use wget to download crudini package which
+# use curl to download crudini package which
 # will be used to configure yum proxy later
 
 crudini_package_name='crudini-0.9-1.el7.noarch.rpm'
-
 crudini_url="http://dl.fedoraproject.org/pub/epel/7/x86_64/c/$crudini_package_name"
-wget --no-check-certificate $crudini_url
+grep -q 'insecure' ~/.curlrc || echo "insecure" >> ~/.curlrc
+curl -o ./$crudini_package_name $crudini_url
 rpm -ivh ./$crudini_package_name
 unset http_proxy
 unset https_proxy
@@ -53,7 +53,7 @@ grep -q $sudo_conf $sudo_conf_file || echo $sudo_conf | sudo tee -a $sudo_conf_f
 sudo chmod 0440 /etc/sudoers.d/stack
 
 # match FQDN hostname with $HOSTNAME environment variable
-hostname=`hostname`
+hostname="undercloud"
 host_entry="127.0.0.1 $hostname $hostname"
 host_entry_file="/etc/hosts"
 sudo hostnamectl set-hostname $hostname
@@ -78,6 +78,8 @@ if [ ! -f $undercloud_conf_file ]; then
 fi
 
 # add undercloud configurations in undercloud.conf
+pxe_interface="enp4s0f1"
+
 crudini --set /home/stack/undercloud.conf DEFAULT local_ip 192.168.24.1/24
 crudini --set /home/stack/undercloud.conf DEFAULT undercloud_public_vip  192.168.24.10
 crudini --set /home/stack/undercloud.conf DEFAULT undercloud_admin_vip 192.168.24.11
