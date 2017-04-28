@@ -1,9 +1,60 @@
 #!/bin/bash
 
-# configure network proxy
-proxy_user=""
-proxy_password=""
-proxy_url=""
+usage()
+{
+    echo "Usage: $0 "
+    echo -e "\t -u <proxy_user> -p <proxy_password> -l <proxy_url> -s <slot_num> "
+    echo -e "\t [-r <openstack_release default is ocata>]"
+    echo -e "eg $0 -u user1 -p 123456 -l proxy.com:8080 -s 4"
+    echo -e "\n"
+    exit 0
+}
+
+while getopts "u:p:l:s:r:" arg
+do
+    case $arg in
+        u)
+            proxy_user="$OPTARG"
+            ;;
+        p)
+            proxy_password="$OPTARG"
+            ;;
+        l)
+            proxy_url="$OPTARG"
+            ;;
+        s)
+            slot="$OPTARG"
+            ;;
+        r)
+            release="$OPTARG"
+            ;;
+        ?)
+            echo "unknow argument"
+            usage()
+            ;;
+     esac
+done
+
+release=${release:-'ocata'}
+
+case $slot in
+    1)
+        pxe_interface="enp4s0f1"
+        ;;
+    2)
+        pxe_interface="enp4s0f1"
+        ;;
+    3)
+        pxe_interface="enp4s0f1"
+        ;;
+    4)
+        pxe_interface="enp4s0f1"
+        ;;
+    ?)
+        echo "unknown slot num"
+        exit 1
+        ;;
+esac
 
 http_proxy="http://$proxy_user:$proxy_password@$proxy_url"
 https_proxy="https://$proxy_user:$proxy_password@$proxy_url"
@@ -20,8 +71,6 @@ crudini_url="http://dl.fedoraproject.org/pub/epel/7/x86_64/c/$crudini_package_na
 grep -q 'insecure' ~/.curlrc || echo "insecure" >> ~/.curlrc
 curl -o ./$crudini_package_name $crudini_url
 rpm -ivh ./$crudini_package_name
-unset http_proxy
-unset https_proxy
 
 # add http_proxy in yum.conf
 crudini --set /etc/yum.conf main proxy $http_proxy
@@ -29,8 +78,8 @@ crudini --get /etc/yum.conf main proxy
 # disable sslVerify in yum.conf
 crudini --set /etc/yum.conf main sslVerify false
 crudini --get /etc/yum.conf main sslVerify
-
-release=ocata
+unset http_proxy
+unset https_proxy
 
 if [ $release = ocata ]; then
     delorean_repo="https://trunk.rdoproject.org/centos7-ocata/current/delorean.repo"
@@ -53,7 +102,7 @@ grep -q $sudo_conf $sudo_conf_file || echo $sudo_conf | sudo tee -a $sudo_conf_f
 sudo chmod 0440 /etc/sudoers.d/stack
 
 # match FQDN hostname with $HOSTNAME environment variable
-hostname="undercloud"
+hostname="undercloud-slot$slot"
 host_entry="127.0.0.1 $hostname $hostname"
 host_entry_file="/etc/hosts"
 sudo hostnamectl set-hostname $hostname
@@ -78,8 +127,6 @@ if [ ! -f $undercloud_conf_file ]; then
 fi
 
 # add undercloud configurations in undercloud.conf
-pxe_interface="enp4s0f1"
-
 crudini --set /home/stack/undercloud.conf DEFAULT local_ip 192.168.24.1/24
 crudini --set /home/stack/undercloud.conf DEFAULT undercloud_public_vip  192.168.24.10
 crudini --set /home/stack/undercloud.conf DEFAULT undercloud_admin_vip 192.168.24.11
