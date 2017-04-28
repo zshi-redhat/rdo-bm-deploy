@@ -34,7 +34,7 @@ do
             ;;
         ?)
             echo "unknow argument"
-            usage()
+            usage
             ;;
      esac
 done
