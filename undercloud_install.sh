@@ -45,15 +45,19 @@ ip_prefix=${ip_prefix:-'192.168.24'}
 case $slot in
     1)
         pxe_interface="enp4s0f1"
+        ipmi_interface="enp4s0f1"
         ;;
     2)
         pxe_interface="enp4s0f1"
+        ipmi_interface="enp4s0f1"
         ;;
     3)
         pxe_interface="enp4s0f1"
+        ipmi_interface="enp4s0f1"
         ;;
     4)
         pxe_interface="enp4s0f1"
+        ipmi_interface="enp4s0f1"
         ;;
     ?)
         echo "unknown slot num"
@@ -142,6 +146,9 @@ crudini --set /home/stack/undercloud.conf DEFAULT dhcp_end ${ip_prefix}.120
 crudini --set /home/stack/undercloud.conf DEFAULT network_cidr ${ip_prefix}.0/24
 crudini --set /home/stack/undercloud.conf DEFAULT network_gateway ${ip_prefix}.1
 crudini --set /home/stack/undercloud.conf DEFAULT discovery_iprange ${ip_prefix}.150,${ip_prefix}.180
+
+# add ip address for ipmi interface
+sudo ip addr add 190.9.4.61/16 dev $ipmi_interface
 
 # switch to stack user
 su - stack
