@@ -5,12 +5,13 @@ usage()
     echo "Usage: $0 "
     echo -e "\t -u <proxy_user> -p <proxy_password> -l <proxy_url> -s <slot_num> "
     echo -e "\t [-r <openstack_release default is ocata>]"
+    echo -e "\t [-i <ip address prefix, eg -i 192.168.25>]"
     echo -e "eg $0 -u user1 -p 123456 -l proxy.com:8080 -s 4"
     echo -e "\n"
     exit 0
 }
 
-while getopts "u:p:l:s:r:" arg
+while getopts "u:p:l:s:r:i:" arg
 do
     case $arg in
         u)
@@ -28,6 +29,9 @@ do
         r)
             release="$OPTARG"
             ;;
+        i)
+            ip_prefix="$OPTARG"
+            ;;
         ?)
             echo "unknow argument"
             usage()
@@ -36,6 +40,7 @@ do
 done
 
 release=${release:-'ocata'}
+ip_prefix=${ip_prefix:-'192.168.24'}
 
 case $slot in
     1)
@@ -127,16 +132,16 @@ if [ ! -f $undercloud_conf_file ]; then
 fi
 
 # add undercloud configurations in undercloud.conf
-crudini --set /home/stack/undercloud.conf DEFAULT local_ip 192.168.24.1/24
-crudini --set /home/stack/undercloud.conf DEFAULT undercloud_public_vip  192.168.24.10
-crudini --set /home/stack/undercloud.conf DEFAULT undercloud_admin_vip 192.168.24.11
+crudini --set /home/stack/undercloud.conf DEFAULT local_ip ${ip_prefix}.1/24
+crudini --set /home/stack/undercloud.conf DEFAULT undercloud_public_vip  ${ip_prefix}.10
+crudini --set /home/stack/undercloud.conf DEFAULT undercloud_admin_vip ${ip_prefix}.11
 crudini --set /home/stack/undercloud.conf DEFAULT local_interface $pxe_interface
-crudini --set /home/stack/undercloud.conf DEFAULT masquerade_network 192.168.24.0/24
-crudini --set /home/stack/undercloud.conf DEFAULT dhcp_start 192.168.24.20
-crudini --set /home/stack/undercloud.conf DEFAULT dhcp_end 192.168.24.120
-crudini --set /home/stack/undercloud.conf DEFAULT network_cidr 192.168.24.0/24
-crudini --set /home/stack/undercloud.conf DEFAULT network_gateway 192.168.24.1
-crudini --set /home/stack/undercloud.conf DEFAULT discovery_iprange 192.168.24.150,192.168.24.180
+crudini --set /home/stack/undercloud.conf DEFAULT masquerade_network ${ip_prefix}.0/24
+crudini --set /home/stack/undercloud.conf DEFAULT dhcp_start ${ip_prefix}.20
+crudini --set /home/stack/undercloud.conf DEFAULT dhcp_end ${ip_prefix}.120
+crudini --set /home/stack/undercloud.conf DEFAULT network_cidr ${ip_prefix}.0/24
+crudini --set /home/stack/undercloud.conf DEFAULT network_gateway ${ip_prefix}.1
+crudini --set /home/stack/undercloud.conf DEFAULT discovery_iprange ${ip_prefix}.150,${ip_prefix}.180
 
 # switch to stack user
 su - stack
