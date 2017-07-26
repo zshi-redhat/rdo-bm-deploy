@@ -1,4 +1,6 @@
 #!/bin/bash
+# Refer to below link for detailed install steps
+# http://tripleo-docs.readthedocs.io/en/latest/installation/installation.html
 
 usage()
 {
